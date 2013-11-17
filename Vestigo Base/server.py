@@ -10,6 +10,7 @@ from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from urlparse import urlparse, parse_qs
 from SocketServer import ThreadingMixIn
 import threading
+import collections
 
 class Server():
 	def __init__(self,settings,logger):
@@ -24,17 +25,18 @@ class Server():
 	
 	def processPayload(self, payload):
 	
-		forwardPayload={}
-		forwardPayload["name"]=payload["asset"]["name"]
-		forwardPayload["rssi"]=payload["asset"]["rssi"]
-		forwardPayload["type"]=payload["asset"]["type"]
-		forwardPayload["address"]=payload["asset"]["address"]
+		if(payload["asset"]["address"] not in self.assetToPayload):
+			self.assetToPayload[payload["asset"]["address"]]={}
+			self.assetToPayload[payload["asset"]["address"]]["location"]="Unknown"
 		
-		self.assetToPayload[payload["asset"]["address"]]=forwardPayload
+		self.assetToPayload[payload["asset"]["address"]]["address"]=payload["asset"]["address"]
+		self.assetToPayload[payload["asset"]["address"]]["name"]=payload["asset"]["name"]
+		self.assetToPayload[payload["asset"]["address"]]["rssi"]=payload["asset"]["rssi"]
+		self.assetToPayload[payload["asset"]["address"]]["type"]=payload["asset"]["type"]
 		
+		ruleMatches=False	
 		for location in self.getLocations():
 			for rule in self.getLocations(location):
-				ruleMatches=False
 				if(rule["reader"]==payload["reader"]):
 					if(payload["asset"]["address"] in self.getAddresses("nonDisc")):
 						if(int(payload["asset"]["rssi"])>=int(rule["grpr"]["min"]) and int(payload["asset"]["rssi"])<=int(rule["grpr"]["max"])):
@@ -45,20 +47,21 @@ class Server():
 					
 				if(ruleMatches):
 					self.log("Name: "+payload["asset"]["name"]+" is in location: "+location)
-					forwardPayload["location"]=location
-				else:
-					forwardPayload["location"]="Unknown"
+					self.assetToPayload[payload["asset"]["address"]]["location"]=location
+					break
+			if(ruleMatches):
+				break
 					
-			if(self._settings.baseServer_ForwardData is not None):
-				self.log("Forwarding payload off to: "+self._settings.baseServer_ForwardData)
-				try:
-					self.log("Forward Payload: ")
-					self.log(json.dumps(forwardPayload,indent=4))
-					headers = {'content-type': 'application/json'}
-					resp = requests.post(self._settings.baseServer_ForwardData, data=json.dumps(forwardPayload), headers=headers,timeout=int(self._settings.baseServer_ForwardTimeout))
-					self.log("Resp: "+str(resp.status_code))
-				except Exception, error:
-					self.log("Error with forward request: "+str(error))		
+		if(self._settings.baseServer_ForwardData is not None):
+			self.log("Forwarding payload off to: "+self._settings.baseServer_ForwardData)
+			try:
+				self.log("Forward Payload: ")
+				self.log(json.dumps(self.assetToPayload[payload["asset"]["address"]],indent=4))
+				headers = {'content-type': 'application/json'}
+				resp = requests.post(self._settings.baseServer_ForwardData, data=json.dumps(forwardPayload), headers=headers,timeout=int(self._settings.baseServer_ForwardTimeout))
+				self.log("Resp: "+str(resp.status_code))
+			except Exception, error:
+				self.log("Error with forward request: "+str(error))		
 	
 	def getAddresses(self,type=None):
 		fetchNew=False
@@ -99,7 +102,7 @@ class Server():
 				self._lastFetchLocations=time.time()
 				self.log("Recaching locations.")
 				f = open("locations.cfg")
-				self._locations=json.loads(f.read())
+				self._locations=json.loads(f.read(),object_pairs_hook=collections.OrderedDict)
 				f.close()
 				self.log("Finished recache.")
 			except Exception,error:
