@@ -10,8 +10,8 @@ class Settings():
 		self.scanMode_Disc=False
 		self.scanMode_NonDisc=False
 		
-		self.readTimeout_Disc=10
-		self.readTimeout_NonDisc=5
+		self.readTimeout_Disc=0
+		self.readTimeout_NonDisc=0
 		
 		self.baseServer_URL=None
 		self.baseServer_Timeout=8

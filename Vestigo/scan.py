@@ -77,7 +77,8 @@ class Scanner():
 		while self._keepScanning:
 			self._scanProc = subprocess.Popen(['hcitool', 'scan'],cwd='/usr/bin',stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
 			self._scanProc.wait()
-			time.sleep(self._settings.readTimeout_Disc)
+			if(self._settings.readTimeout_Disc>0):
+				time.sleep(self._settings.readTimeout_Disc)
 	
 	def nonDiscScanProcessSpawner(self,addr):
 		while (self._nonDiscKeepScanning):
@@ -92,7 +93,8 @@ class Scanner():
 						self.send_payload(addr,rssi)
 				else:
 					self.send_payload(addr,rssi)
-				time.sleep(self._settings.readTimeout_NonDisc)
+				if(self._settings.readTimeout_NonDisc>0):
+					time.sleep(self._settings.readTimeout_NonDisc)
 		
 	def nonDiscScanPoolInitiate(self):
 		pool = ThreadPool(processes=10)

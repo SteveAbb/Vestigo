@@ -37,10 +37,10 @@ class Server():
 				ruleMatches=False
 				if(rule["reader"]==payload["reader"]):
 					if(payload["asset"]["address"] in self.getAddresses("nonDisc")):
-						if(int(payload["asset"]["rssi"])>=int(rule["grpr"]["min"]) and int(payload["asset"]["rssi"])>=int(rule["grpr"]["max"])):
+						if(int(payload["asset"]["rssi"])>=int(rule["grpr"]["min"]) and int(payload["asset"]["rssi"])<=int(rule["grpr"]["max"])):
 							ruleMatches=True
 					else:
-						if(int(payload["asset"]["rssi"])>=int(rule["rssi"]["min"]) and int(payload["asset"]["rssi"])>=int(rule["rssi"]["max"])):
+						if(int(payload["asset"]["rssi"])>=int(rule["rssi"]["min"]) and int(payload["asset"]["rssi"])<=int(rule["rssi"]["max"])):
 							ruleMatches=True
 					
 				if(ruleMatches):
