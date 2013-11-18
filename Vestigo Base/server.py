@@ -140,9 +140,7 @@ class HTTPHandler(BaseHTTPRequestHandler):
 				try:
 					queryStr=parse_qs(urlparse(self.path).query)
 					reader=str(queryStr["reader"][0])
-					self.server.log("Request for address list from reader: "+reader)
 					self.wfile.write(json.dumps(self.server.getAddresses()))
-					self.server.log("Responded to "+reader)
 				except IOError as e:
 					self.send_response(404)
 					self.server.log("Error with processing readers request for addresses: "+str(e))
@@ -151,15 +149,20 @@ class HTTPHandler(BaseHTTPRequestHandler):
 					self.send_response(200)
 					self.send_header('Content-type','application/json')
 					self.end_headers()
-					self.server.log("Request for asset states")
 					self.wfile.write(json.dumps(self.server.assetToPayload.values()))
-					self.server.log("Responded")
 				except IOError as e:
 					self.send_response(404)
 					self.server.log("Error with processing request for asset states: "+str(e))
 			else:
-				self.send_response(404)
-				self.server.log("Error with request. Request for unknown resource: "+resource)
+				fileName="web/view.html"
+				if("style.css" in dirs):
+					fileName="web/style.css"
+				f = open(fileName)
+				self.send_response(200)
+				self.send_header('Content-type','text/html')
+				self.end_headers()
+				self.wfile.write(f.read())
+				f.close()
 		else:
 			self.send_response(404)
 			self.server.log("Error with request. No resource specified")

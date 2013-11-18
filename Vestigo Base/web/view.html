@@ -1,0 +1,58 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="style.css">
+<script>
+    var xmlHttp;
+
+    function getAssets() {
+        xmlHttp = GetXmlHttpObject();
+        if (xmlHttp == null) {
+            alert("Browser does not support HTTP Request");
+            return;
+        }
+        
+        var url = "/states";
+        url = url + "/?sid=" + Math.random();
+        xmlHttp.onreadystatechange = stateChanged;
+        xmlHttp.open("GET", url, true);
+        xmlHttp.send(null);
+    }
+
+    function stateChanged() {
+        if (xmlHttp.readyState == 4 || xmlHttp.readyState == "complete") {
+        	console.log(xmlHttp.responseText);
+        	var assets=JSON.parse(xmlHttp.responseText);
+        	var tableRows="<tr><th>Name</th><th>Location</th><th>RSSI</th><th>Address</th><th>Type</th></tr>";
+        	for(var i=0;i<assets.length;i++)
+        		tableRows+="<tr>\
+        						<td>"+assets[i]["name"]+"</td>\
+        						<td>"+assets[i]["location"]+"</td>\
+        						<td>"+assets[i]["rssi"]+"</td>\
+        						<td>"+assets[i]["address"]+"</td>\
+        						<td>"+assets[i]["type"]+"</td>\
+        					</tr>";
+            document.getElementById("assets").innerHTML = tableRows;
+        }
+    }
+
+    function GetXmlHttpObject() {
+        var xmlHttp = null;
+        try {
+            xmlHttp = new XMLHttpRequest();
+        } catch (e) {
+            // Internet Explorer
+            try {
+                xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+            } catch (e) {
+                xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+            }
+        }
+        return xmlHttp;
+    }
+</script>
+</head>
+<body onload="setInterval(getAssets,1000)">
+<table id="assets">
+</table>
+</body>
+</html>
