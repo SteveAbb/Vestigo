@@ -90,7 +90,16 @@ or using pip:
 	pip install requests
 
 
-That's it! 
+That's it!
+
+To start the reader run
+
+	python vestigo.py
+
+To start the base server run
+
+	python vestigo_base.py
+
 
 Remember to add devices to the addresses.cfg file. An easy way to find an address of a device is to use 
 	
