@@ -9,12 +9,12 @@ How it works
 ------------
 Vestigo currently supports three modes of reading a Bluetooth device:
 
--Discoverable
-	*A Bluetooth device that is configured as discoverable.
--Non-Discoverable
-	*A Bluetooth device that accepts connections but is not Broadcasting itself
--Low Energy (BLE)
-	*A Bluetooth 4.0 Low Energy device that is discoverable
+- Discoverable
+	- A Bluetooth device that is configured as discoverable.
+- Non-Discoverable
+	- A Bluetooth device that accepts connections but is not Broadcasting itself
+- Low Energy (BLE)
+	- A Bluetooth 4.0 Low Energy device that is discoverable
 
 Discoverable and BLE devices return an standard RSSI where-as Non-Discoverable devices currently only return their golden receive power range (GRPR). It is important to note that Vestigo does not attempt to pair with any devices (unless it's non-discoverable, in which case it continuously attempts to connect, to obtain the device's GRPR, but it will never successfully pair).
 
@@ -29,20 +29,20 @@ Configuration
 Vestigo has one configuration file: `Vestigo\vestigo.ini`.
 This configuration file allows the user to 
 
--Enable/disable scan modes (BLE, Discoverable, Non-Discoverable)
+- Enable/disable scan modes (BLE, Discoverable, Non-Discoverable)
 	*It is important to note that enabling all scan modes at once is with no timeouts is discouraged as I've noticed it tends to bog down most adapters I've tested with
--Define read timeouts - seconds between each attempt to read
--Configure base server host, request timeout and rechace period in seconds (period between each request for updated assets)
--Configure logging
+- Define read timeouts - seconds between each attempt to read
+- Configure base server host, request timeout and rechace period in seconds (period between each request for updated assets)
+- Configure logging
 
 ### Vestigo Base (Server)
 Vestigo Base has one configuration file: `Vestigo Base\vestigo.ini`.
 This configuration file allows the user to 
 
--Define listen port for HTTP server
--Define URL to forward all data to (useful if you want to write a web application that uses WebSockets and not have to poll the server, or if you want to store the data to a database)
--Set recache period in seconds, for reloading locations and assets
--Configure logging
+- Define listen port for HTTP server
+- Define URL to forward all data to (useful if you want to write a web application that uses WebSockets and not have to poll the server, or if you want to store the data to a database)
+- Set recache period in seconds, for reloading locations and assets
+- Configure logging
 
 To configure assest and location rules, edit the JSON located in: `Vestigo Base\addresses.cfg` and `Vestigo Base\locations.cfg`
 
@@ -65,24 +65,31 @@ How to install it
 To install the Vestigo reader on a Raspberry Pi running Raspbian, follow these steps:
 
 Install the Bluetooth support package
-`apt-get install bluetooth`
+	apt-get install bluetooth
 Verify the bluetooth daemon is running
-`/etc/init.d/bluetooth status`
+	/etc/init.d/bluetooth status
 Verify your adapter is recognized
-`hcitool dev`
+	hcitool dev
 Install hcidump
-`apt-get install bluez-hcidump`
+	apt-get install bluez-hcidump
 Install python library "requests"
-Using easy_install: `easy_install install requests` or using pip: `pip install requests`
+Using easy_install: 
+	easy_install install requests
+or using pip: 
+	pip install requests
 
 That's it! 
 
-Remember to add devices to the addresses.cfg file. An easy way to find an address of a device is to use `hcitool scan` for discoverable devices, or `hcitool lescan` for BLE devices. For non-discoverable devices, put them into discoverable (such as opening up the bluetooth screen on iOS), and then capture their address before making them non-discoverable.
+Remember to add devices to the addresses.cfg file. An easy way to find an address of a device is to use 
+	hcitool scan
+for discoverable devices, or 
+	hcitool lescan
+for BLE devices. For non-discoverable devices, put them into discoverable (such as opening up the bluetooth screen on iOS), and then capture their address before making them non-discoverable.
 
 Future features
 ---------------
 I have a load of features and enhancements I'd like to add to this project when I find more time. Here is a list of some that I'd like to add:
--Proper daemonization of the reader and server processes
--WebSocket based web application demo
--Normalization modules for different types of device adapters and reader adapters. Allowing you to relationally skew the incoming SSI of each device based on the reader and devices adapter (since different types of adapters give off different SSI readings)
--Research better means for getting a more accurate distance read of devices. Factor in Link Query?
+- Proper daemonization of the reader and server processes
+- WebSocket based web application demo
+- Normalization modules for different types of device adapters and reader adapters. Allowing you to relationally skew the incoming SSI of each device based on the reader and devices adapter (since different types of adapters give off different SSI readings)
+- Research better means for getting a more accurate distance read of devices. Factor in Link Query?
