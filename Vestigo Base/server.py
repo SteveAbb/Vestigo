@@ -33,6 +33,7 @@ class Server():
 		self.assetToPayload[payload["asset"]["address"]]["name"]=payload["asset"]["name"]
 		self.assetToPayload[payload["asset"]["address"]]["rssi"]=payload["asset"]["rssi"]
 		self.assetToPayload[payload["asset"]["address"]]["type"]=payload["asset"]["type"]
+		self.assetToPayload[payload["asset"]["address"]]["reader"]=payload["reader"]
 		
 		ruleMatches=False	
 		for location in self.getLocations():
@@ -155,11 +156,25 @@ class HTTPHandler(BaseHTTPRequestHandler):
 					self.server.log("Error with processing request for asset states: "+str(e))
 			else:
 				fileName="web/view.html"
+				contentType="text/html"
 				if("style.css" in dirs):
 					fileName="web/style.css"
+					contentType="text/css"
+				elif("coords.cfg" in dirs):
+					fileName="web/coords.cfg"
+					contentType="application/json"
+				elif("blueprint.png" in dirs):
+					fileName="web/blueprint.png"
+					contentType="image/png"
+				elif("coord.html" in dirs):
+					fileName="web/coord.html"
+					contentType="text/html"
+				elif("logo.png" in dirs):
+					fileName="web/logo.png"
+					contentType="image/png"
 				f = open(fileName)
 				self.send_response(200)
-				self.send_header('Content-type','text/html')
+				self.send_header('Content-type',contentType)
 				self.end_headers()
 				self.wfile.write(f.read())
 				f.close()

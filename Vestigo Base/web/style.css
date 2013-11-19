@@ -1,3 +1,13 @@
+canvas{
+	padding:11px 15px 12px 15px;
+	border-top:1px solid #fafafa;
+	border-bottom:1px solid #e0e0e0;
+
+	background: #ededed;
+	background: -webkit-gradient(linear, left top, left bottom, from(#ededed), to(#ebebeb));
+	background: -moz-linear-gradient(top,  #ededed,  #ebebeb);
+}
+
 table a:link {
 	color: #666;
 	font-weight: bold;
@@ -13,7 +23,7 @@ table a:hover {
 	color: #bd5a35;
 	text-decoration:underline;
 }
-table {
+table, canvas {
 	font-family:Arial, Helvetica, sans-serif;
 	color:#666;
 	font-size:12px;
@@ -21,6 +31,9 @@ table {
 	background:#eaebec;
 	margin:20px;
 	border:#ccc 1px solid;
+	
+	margin-left:auto; 
+    margin-right:auto;
 
 	-moz-border-radius:3px;
 	-webkit-border-radius:3px;

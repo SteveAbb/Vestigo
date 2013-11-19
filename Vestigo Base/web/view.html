@@ -1,58 +1,111 @@
 <html>
+
 <head>
-<link rel="stylesheet" type="text/css" href="style.css">
-<script>
-    var xmlHttp;
+    <link rel="stylesheet" type="text/css" href="web/style.css">
+    <script>
+        var xmlHttp;
+        var imageLoaded = false;
+        var coords;
+        var canvas;
+        var context;
+        var locationAssets={}
+        var assetToLocation={}
+        var image;
+        var imageUrl="blueprint.png";
 
-    function getAssets() {
-        xmlHttp = GetXmlHttpObject();
-        if (xmlHttp == null) {
-            alert("Browser does not support HTTP Request");
-            return;
-        }
-        
-        var url = "/states";
-        url = url + "/?sid=" + Math.random();
-        xmlHttp.onreadystatechange = stateChanged;
-        xmlHttp.open("GET", url, true);
-        xmlHttp.send(null);
-    }
-
-    function stateChanged() {
-        if (xmlHttp.readyState == 4 || xmlHttp.readyState == "complete") {
-        	console.log(xmlHttp.responseText);
-        	var assets=JSON.parse(xmlHttp.responseText);
-        	var tableRows="<tr><th>Name</th><th>Location</th><th>RSSI</th><th>Address</th><th>Type</th></tr>";
-        	for(var i=0;i<assets.length;i++)
-        		tableRows+="<tr>\
-        						<td>"+assets[i]["name"]+"</td>\
-        						<td>"+assets[i]["location"]+"</td>\
-        						<td>"+assets[i]["rssi"]+"</td>\
-        						<td>"+assets[i]["address"]+"</td>\
-        						<td>"+assets[i]["type"]+"</td>\
-        					</tr>";
-            document.getElementById("assets").innerHTML = tableRows;
-        }
-    }
-
-    function GetXmlHttpObject() {
-        var xmlHttp = null;
-        try {
+        function getAssets() {
             xmlHttp = new XMLHttpRequest();
-        } catch (e) {
-            // Internet Explorer
-            try {
-                xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
-            } catch (e) {
-                xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+            xmlHttp.open("GET", "/states", true);
+            xmlHttp.onreadystatechange = function stateChanged() {
+                if (xmlHttp.readyState == 4 || xmlHttp.readyState == "complete") {
+                    var assets = JSON.parse(xmlHttp.responseText);
+                    
+					var tableRows = "<tr><th>Name</th><th>Location</th><th>RSSI</th><th>Reader</th><th>Address</th><th>Type</th></tr>";
+					
+                    for (var i = 0; i < assets.length; i++) {
+                        
+                        if(!(assets[i]["location"] in locationAssets)){
+                        	locationAssets[assets[i]["location"]]=[];
+                        }
+                        
+                        if(assets[i]["name"] in assetToLocation){
+							locationAssets[assetToLocation[assets[i]["name"]]].splice(locationAssets[assetToLocation[assets[i]["name"]]].indexOf(assets[i]["name"]), 1);
+							locationAssets[assets[i]["location"]].push(assets[i]["name"]);
+                        }
+                        else{
+                        	locationAssets[assets[i]["location"]].push(assets[i]["name"]);
+                        }
+                        
+                        assetToLocation[assets[i]["name"]]=assets[i]["location"];
+                        
+                        tableRows += "<tr>\
+										<td>" + assets[i]["name"] + "</td>\
+										<td>" + assets[i]["location"] + "</td>\
+										<td>" + assets[i]["rssi"] + "</td>\
+										<td>" + assets[i]["reader"] + "</td>\
+										<td>" + assets[i]["address"] + "</td>\
+										<td>" + assets[i]["type"] + "</td>\
+									</tr>";
+                    }
+                    document.getElementById("assets").innerHTML = tableRows;
+
+                    if (imageLoaded) {
+						context.drawImage(image, 0, 0);
+						for(var loc in locationAssets){
+							if(locationAssets[loc].length>0){
+								context.font = "20pt Calibri";
+								context.fillText("\u2022", coords[loc][0], coords[loc][1]);
+							}
+							for(var i=0; i<locationAssets[loc].length;i++){
+								if(loc in coords){
+									context.font = "12pt Calibri";
+									context.fillText(locationAssets[loc][i], coords[loc][0]+11, coords[loc][1]+(i*13));
+								}
+							}
+						}
+					}
+                }
             }
+            xmlHttp.send(null);
         }
-        return xmlHttp;
-    }
-</script>
+
+        function getCoords() {
+            xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("GET", "/web/coords.cfg", true);
+            xmlHttp.onreadystatechange = function stateChanged() {
+                if (xmlHttp.readyState == 4 || xmlHttp.readyState == "complete") {
+                    coords = JSON.parse(xmlHttp.responseText);
+                }
+            }
+            xmlHttp.send(null);
+        }
+
+        function start() {
+            coords = getCoords();
+            canvas = document.getElementById("canvas");
+            var myImage = document.getElementById("tempImage");
+            canvas.width = myImage.width;
+            canvas.height = myImage.height
+            myImage.style.display = "none";
+            context = canvas.getContext("2d");
+            image = new Image();
+			image.onload = function () {
+				context.drawImage(image, 0, 0);
+				imageLoaded = true;
+			};
+			image.src = imageUrl;
+            setInterval(getAssets, 1000);
+        }
+    </script>
 </head>
-<body onload="setInterval(getAssets,1000)">
-<table id="assets">
-</table>
+
+<body onload="start()" style="text-align: center; background-color: #D3EDFF;">
+	<img src="logo.png" width="250">
+	<div style="font-size:12px; margin-left: 4.7em; margin-top:-.5em;">By: Steve Abbagnaro</div>
+    <table id="assets"></table>
+    <canvas id="canvas"></canvas>
+    <img id="tempImage" src="blueprint.png">
+    <div><a href="coord.html">Configure Coordinates</a></div>
 </body>
+
 </html>

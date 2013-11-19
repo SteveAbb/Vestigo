@@ -1,0 +1,27 @@
+<html>
+<head>
+<script language="JavaScript">
+
+window.onload=function()
+{
+	var img=document.getElementById("tempImage");
+	document.getElementById("coord_div").style.width=img.width
+	document.getElementById("coord_div").style.height=img.height
+	img.style.display="none";
+}
+
+function getCoord(event){
+	var x = event.offsetX?(event.offsetX):event.pageX-document.getElementById("coord_div").offsetLeft;
+	var y = event.offsetY?(event.offsetY):event.pageY-document.getElementById("coord_div").offsetTop;
+	document.getElementById("results").innerHTML=x+","+y;
+}
+
+</script>
+</head>
+<body>
+<img id="tempImage" src="blueprint.png">
+<div id="coord_div" onclick="getCoord(event)" style = "background-image:url('blueprint.png');">
+<div id="results">Click a point on the image below to get the coordinates.</div>
+</div>
+</body>
+</html>
