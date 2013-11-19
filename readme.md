@@ -65,25 +65,25 @@ How to install it
 To install the Vestigo reader on a Raspberry Pi running Raspbian, follow these steps:
 
 Install the Bluetooth support package
-	apt-get install bluetooth
+    apt-get install bluetooth
 Verify the bluetooth daemon is running
-	/etc/init.d/bluetooth status
+    /etc/init.d/bluetooth status
 Verify your adapter is recognized
-	hcitool dev
+    hcitool dev
 Install hcidump
-	apt-get install bluez-hcidump
+    apt-get install bluez-hcidump
 Install python library "requests"
 Using easy_install: 
-	easy_install install requests
+    easy_install install requests
 or using pip: 
-	pip install requests
+    pip install requests
 
 That's it! 
 
 Remember to add devices to the addresses.cfg file. An easy way to find an address of a device is to use 
-	hcitool scan
+    hcitool scan
 for discoverable devices, or 
-	hcitool lescan
+    hcitool lescan
 for BLE devices. For non-discoverable devices, put them into discoverable (such as opening up the bluetooth screen on iOS), and then capture their address before making them non-discoverable.
 
 Future features
