@@ -1,4 +1,4 @@
-Vestigo - Using bluetooth as a real-time tracking system
+Vestigo - Bluetooth real-time tracking system
 ========================================================
 
 What is it
