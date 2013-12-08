@@ -118,3 +118,4 @@ I have a load of features and enhancements I'd like to add to this project when 
 - WebSocket based web application demo
 - Normalization modules for different types of device adapters and reader adapters. Allowing you to relationally skew the incoming SSI of each device based on the reader and devices adapter (since different types of adapters give off different SSI readings)
 - Research better means for getting a more accurate distance read of devices. Factor in Link Query?
+- Triangulation...oh boy
