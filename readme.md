@@ -114,6 +114,7 @@ for BLE devices. For non-discoverable devices, put them into discoverable (such 
 Future features
 ---------------
 I have a load of features and enhancements I'd like to add to this project when I find more time. Here is a list of some that I'd like to add:
+- Location timeouts
 - Proper daemonization of the reader and server processes
 - WebSocket based web application demo
 - Normalization modules for different types of device adapters and reader adapters. Allowing you to relationally skew the incoming SSI of each device based on the reader and devices adapter (since different types of adapters give off different SSI readings)
