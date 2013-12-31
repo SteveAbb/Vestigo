@@ -56,8 +56,9 @@ class Server():
 		if(self._settings.baseServer_ForwardData is not None):
 			self.log("Forwarding payload off to: "+self._settings.baseServer_ForwardData)
 			try:
+				forwardPayload=self.assetToPayload[payload["asset"]["address"]]
 				self.log("Forward Payload: ")
-				self.log(json.dumps(self.assetToPayload[payload["asset"]["address"]],indent=4))
+				self.log(json.dumps(forwardPayload,indent=4))
 				headers = {'content-type': 'application/json'}
 				resp = requests.post(self._settings.baseServer_ForwardData, data=json.dumps(forwardPayload), headers=headers,timeout=int(self._settings.baseServer_ForwardTimeout))
 				self.log("Resp: "+str(resp.status_code))
