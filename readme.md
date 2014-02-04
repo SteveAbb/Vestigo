@@ -54,6 +54,10 @@ I made a simple web application that servers up all the content in `Vestigo Base
 
 The web application allows you to provide a blueprint image: `Vestigo Base\web\blueprint.png` and configure locations to coordinates on that image through the use of the `Vestigo Base\web\coords.cfg` file.
 
+Sample screenshot below:
+
+![Vestigo Screenshot](http://i.imgur.com/tgLXrN3.png "Vestigo Screenshot")
+
 Hardware
 --------
 For testing I used a series of Model B Raspberry Pis as readers. I am running Raspbian on each of them, but have also tested it with Arch. The adapter I find that works the best for the Raspberry Pi (requires no drivers on Raspbian) and supports Bluetooth 4.0 is the Plugable USB-BT4LE Bluetooth 4.0 USB Adapter.
