@@ -172,6 +172,9 @@ class HTTPHandler(BaseHTTPRequestHandler):
 				try:
 					queryStr=parse_qs(urlparse(self.path).query)
 					reader=str(queryStr["reader"][0])
+					self.send_response(200)
+					self.send_header('Content-type',"application/json")
+					self.end_headers()
 					self.wfile.write(json.dumps(self.server.getAddresses()))
 				except IOError as e:
 					self.send_response(404)
