@@ -27,64 +27,64 @@ class Server():
 		self._server = VestigoHTTPServer(("", self._settings.baseServer_Port), HTTPHandler, self.log,self.processPayload,self.getAddresses,self.assetToPayload)
 	
 	def processPayload(self, payload):
-	
-		if(payload["asset"]["address"] not in self.assetToPayload):
-			self.assetToPayload[payload["asset"]["address"]]={}
-			self.assetToPayload[payload["asset"]["address"]]["location"]="Unknown"
-
-		self.assetToPayload[payload["asset"]["address"]]["address"]=payload["asset"]["address"]
-		self.assetToPayload[payload["asset"]["address"]]["name"]=payload["asset"]["name"]
-		self.assetToPayload[payload["asset"]["address"]]["rssi"]=payload["asset"]["rssi"]
-		self.assetToPayload[payload["asset"]["address"]]["type"]=payload["asset"]["type"]
-		self.assetToPayload[payload["asset"]["address"]]["reader"]=payload["reader"]
+		
+		lastLocation = None;
+		
+		if(self._settings.baseServer_ForwardLocation):
+			if(payload["address"] in self.assetToPayload and "location" in self.assetToPayload[payload["address"]]):
+				lastLocation = self.assetToPayload[payload["address"]]["location"]
 		
 		if(payload["reader"] == "base"):
-			self.log("Timeout timer elapsed. Moving " + payload["asset"]["name"] + " into location: Unknown");
-			self.assetToPayload[payload["asset"]["address"]]["location"]="Unknown";
+			self.log("Timeout timer elapsed. Moving " + payload["name"] + " into location: out of range.");
+			payload["location"]="out of range";
 		else:
 			ruleMatches=False	
 			for location in self.getLocations():
 				for rule in self.getLocations(location):
 					if(rule["reader"]==payload["reader"]):
-						if(payload["asset"]["address"] in self.getAddresses("nonDisc")):
-							if(int(payload["asset"]["rssi"])>=int(rule["grpr"]["min"]) and int(payload["asset"]["rssi"])<=int(rule["grpr"]["max"])):
+						if(payload["address"] in self.getAddresses("nonDisc")):
+							if(int(payload["rssi"])>=int(rule["grpr"]["min"]) and int(payload["rssi"])<=int(rule["grpr"]["max"])):
 								ruleMatches=True
 						else:
-							if(int(payload["asset"]["rssi"])>=int(rule["rssi"]["min"]) and int(payload["asset"]["rssi"])<=int(rule["rssi"]["max"])):
+							if(int(payload["rssi"])>=int(rule["rssi"]["min"]) and int(payload["rssi"])<=int(rule["rssi"]["max"])):
 								ruleMatches=True
 
 					if(ruleMatches):
-						self.log("Name: "+payload["asset"]["name"]+" is in location: "+location)
-						self.assetToPayload[payload["asset"]["address"]]["location"]=location
+						self.log("Name: "+payload["name"]+" is in location: "+location)
+						payload["location"]=location
 						break
 				if(ruleMatches):
 					break
 
-			if(ruleMatches and "timeout" in self.getAddresses("all")[payload["asset"]["address"]]):
-				if(payload["asset"]["address"] in self._addressToTimer):
+			if(ruleMatches and "timeout" in self.getAddresses("all")[payload["address"]]):
+				if(payload["address"] in self._addressToTimer):
 					
-					self.log("Reseting timeout timer for " + payload["asset"]["name"]);
-					self._addressToTimer[payload["asset"]["address"]].cancel();
+					self.log("Reseting timeout timer for " + payload["name"]);
+					self._addressToTimer[payload["address"]].cancel();
 				else:
-					self.log("Starting timer for " + payload["asset"]["name"] + " for " + str( self.getAddresses("all")[payload["asset"]["address"]]["timeout"]) + " seconds.");
+					self.log("Starting timer for " + payload["name"] + " for " + str( self.getAddresses("all")[payload["address"]]["timeout"]) + " seconds.");
 					
 				timerPayload = copy.deepcopy(payload);
-				timerPayload["asset"]["rssi"] = 0;
-				timerPayload["reader"] = "base";
+				timerPayload["rssi"] = 0
+				timerPayload["reader"] = "base"
 
-				timer = Timer(self.getAddresses("all")[payload["asset"]["address"]]["timeout"], self.processPayload, (timerPayload,));
+				timer = Timer(self.getAddresses("all")[payload["address"]]["timeout"], self.processPayload, (timerPayload,));
 
-				self._addressToTimer[payload["asset"]["address"]] = timer;
-				self._addressToTimer[payload["asset"]["address"]].start();
+				self._addressToTimer[payload["address"]] = timer
+				self._addressToTimer[payload["address"]].start()
+		
+		self.assetToPayload[payload["address"]]=payload;
 		
 		if(self._settings.baseServer_ForwardData is not None):
+			if(self._settings.baseServer_ForwardLocation):
+				if("location" not in payload or "location" in payload and lastLocation == payload["location"]):
+					return
 			self.log("Forwarding payload off to: "+self._settings.baseServer_ForwardData)
 			try:
-				forwardPayload=self.assetToPayload[payload["asset"]["address"]]
 				self.log("Forward Payload: ")
-				self.log(json.dumps(forwardPayload,indent=4))
+				self.log(json.dumps(payload,indent=4))
 				headers = {'content-type': 'application/json'}
-				resp = requests.post(self._settings.baseServer_ForwardData, data=json.dumps(forwardPayload), headers=headers,timeout=int(self._settings.baseServer_ForwardTimeout))
+				resp = requests.post(self._settings.baseServer_ForwardData, data=json.dumps(payload), headers=headers,timeout=int(self._settings.baseServer_ForwardTimeout))
 				self.log("Resp: "+str(resp.status_code))
 			except Exception, error:
 				self.log("Error with forward request: "+str(error))	
@@ -148,6 +148,12 @@ class Server():
 	def stop(self):
 		self.log("Base server shutting down...")
 		self._server.shutdown()
+		self.log("Killing all timers.");
+		for key in self._addressToTimer:
+			try:
+				self._addressToTimer[key].cancel();
+			except: 
+				pass
 
 class VestigoHTTPServer(ThreadingMixIn, HTTPServer):
 	def __init__(self, server_address, RequestHandlerClass, log, processPayload,getAddresses,assetToPayload):

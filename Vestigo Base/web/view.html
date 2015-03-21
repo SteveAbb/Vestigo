@@ -23,24 +23,33 @@
 					var tableRows = "<tr><th>Name</th><th>Location</th><th>RSSI</th><th>Reader</th><th>Address</th><th>Type</th></tr>";
 					
                     for (var i = 0; i < assets.length; i++) {
+						
+						var assetLocation = "";
                         
-                        if(!(assets[i]["location"] in locationAssets)){
-                        	locationAssets[assets[i]["location"]]=[];
-                        }
                         
-                        if(assets[i]["name"] in assetToLocation){
-							locationAssets[assetToLocation[assets[i]["name"]]].splice(locationAssets[assetToLocation[assets[i]["name"]]].indexOf(assets[i]["name"]), 1);
-							locationAssets[assets[i]["location"]].push(assets[i]["name"]);
-                        }
-                        else{
-                        	locationAssets[assets[i]["location"]].push(assets[i]["name"]);
-                        }
+						if("location" in assets[i]) {
+							
+							assetLocation = assets[i]["location"];
+							
+							if(!(assets[i]["location"] in locationAssets)) {
+                        		locationAssets[assets[i]["location"]]=[];
+                        	}
+							
+							if(assets[i]["name"] in assetToLocation){
+								locationAssets[assetToLocation[assets[i]["name"]]].splice(locationAssets[assetToLocation[assets[i]["name"]]].indexOf(assets[i]["name"]), 1);
+								locationAssets[assets[i]["location"]].push(assets[i]["name"]);
+							}
+							else{
+								locationAssets[assets[i]["location"]].push(assets[i]["name"]);
+							}
+
+							assetToLocation[assets[i]["name"]]=assets[i]["location"];
+						}
                         
-                        assetToLocation[assets[i]["name"]]=assets[i]["location"];
                         
                         tableRows += "<tr>\
 										<td>" + assets[i]["name"] + "</td>\
-										<td>" + assets[i]["location"] + "</td>\
+										<td>" + assetLocation + "</td>\
 										<td>" + assets[i]["rssi"] + "</td>\
 										<td>" + assets[i]["reader"] + "</td>\
 										<td>" + assets[i]["address"] + "</td>\

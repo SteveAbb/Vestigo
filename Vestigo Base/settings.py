@@ -10,6 +10,7 @@ class Settings():
 		self.baseServer_ForwardData=None
 		self.baseServer_Recache=60
 		self.baseServer_ForwardTimeout=8
+		self.baseServer_ForwardLocation=True
 		
 		self.logging_File="vestigo_base.log"
 		self.logging_MaxSize=1024*1024 # 1MB
@@ -31,6 +32,9 @@ class Settings():
 		except: pass
 		try: self.baseServer_ForwardTimeout=int(Config.get("Base Server","forwardtimeout"))
 		except: pass
+		try: self.baseServer_ForwardLocation=Config.getboolean("Base Server","forwardlocation")
+		except: pass
+		
 	
 		try: self.logging_File=Config.get("Logging","file") 
 		except: pass
