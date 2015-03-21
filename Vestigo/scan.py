@@ -63,7 +63,7 @@ class Scanner():
 		
 			if((type=="BLE" and self._settings.scanMode_LE) or (type=="Discoverable" and self._settings.scanMode_Disc) or (type=="Non-Discoverable" and self._settings.scanMode_NonDisc)):
 				try:
-					payload={"reader":self._settings.baseServer_Reader,"asset":{"name":self.getAddresses("all")[addr],"address":addr,"rssi":rssi,"type":type}}
+					payload={"reader":self._settings.baseServer_Reader,"asset":{"name":self.getAddresses("all")[addr]["name"],"address":addr,"rssi":rssi,"type":type}}
 					self.log("Sending payload to: "+self._settings.baseServer_URL)
 					self.log("Payload:")
 					self.log(json.dumps(payload,indent=4))

@@ -10,7 +10,9 @@ from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from urlparse import urlparse, parse_qs
 from SocketServer import ThreadingMixIn
 import threading
+from threading import Timer
 import collections
+import copy
 
 class Server():
 	def __init__(self,settings,logger):
@@ -21,6 +23,7 @@ class Server():
 		self._lastFetchAddresses=None
 		self._locations=None
 		self._addresses=None
+		self._addressToTimer = {}
 		self._server = VestigoHTTPServer(("", self._settings.baseServer_Port), HTTPHandler, self.log,self.processPayload,self.getAddresses,self.assetToPayload)
 	
 	def processPayload(self, payload):
@@ -28,31 +31,52 @@ class Server():
 		if(payload["asset"]["address"] not in self.assetToPayload):
 			self.assetToPayload[payload["asset"]["address"]]={}
 			self.assetToPayload[payload["asset"]["address"]]["location"]="Unknown"
-		
+
 		self.assetToPayload[payload["asset"]["address"]]["address"]=payload["asset"]["address"]
 		self.assetToPayload[payload["asset"]["address"]]["name"]=payload["asset"]["name"]
 		self.assetToPayload[payload["asset"]["address"]]["rssi"]=payload["asset"]["rssi"]
 		self.assetToPayload[payload["asset"]["address"]]["type"]=payload["asset"]["type"]
 		self.assetToPayload[payload["asset"]["address"]]["reader"]=payload["reader"]
 		
-		ruleMatches=False	
-		for location in self.getLocations():
-			for rule in self.getLocations(location):
-				if(rule["reader"]==payload["reader"]):
-					if(payload["asset"]["address"] in self.getAddresses("nonDisc")):
-						if(int(payload["asset"]["rssi"])>=int(rule["grpr"]["min"]) and int(payload["asset"]["rssi"])<=int(rule["grpr"]["max"])):
-							ruleMatches=True
-					else:
-						if(int(payload["asset"]["rssi"])>=int(rule["rssi"]["min"]) and int(payload["asset"]["rssi"])<=int(rule["rssi"]["max"])):
-							ruleMatches=True
-					
+		if(payload["reader"] == "base"):
+			self.log("Timeout timer elapsed. Moving " + payload["asset"]["name"] + " into location: Unknown");
+			self.assetToPayload[payload["asset"]["address"]]["location"]="Unknown";
+		else:
+			ruleMatches=False	
+			for location in self.getLocations():
+				for rule in self.getLocations(location):
+					if(rule["reader"]==payload["reader"]):
+						if(payload["asset"]["address"] in self.getAddresses("nonDisc")):
+							if(int(payload["asset"]["rssi"])>=int(rule["grpr"]["min"]) and int(payload["asset"]["rssi"])<=int(rule["grpr"]["max"])):
+								ruleMatches=True
+						else:
+							if(int(payload["asset"]["rssi"])>=int(rule["rssi"]["min"]) and int(payload["asset"]["rssi"])<=int(rule["rssi"]["max"])):
+								ruleMatches=True
+
+					if(ruleMatches):
+						self.log("Name: "+payload["asset"]["name"]+" is in location: "+location)
+						self.assetToPayload[payload["asset"]["address"]]["location"]=location
+						break
 				if(ruleMatches):
-					self.log("Name: "+payload["asset"]["name"]+" is in location: "+location)
-					self.assetToPayload[payload["asset"]["address"]]["location"]=location
 					break
-			if(ruleMatches):
-				break
+
+			if(ruleMatches and "timeout" in self.getAddresses("all")[payload["asset"]["address"]]):
+				if(payload["asset"]["address"] in self._addressToTimer):
 					
+					self.log("Reseting timeout timer for " + payload["asset"]["name"]);
+					self._addressToTimer[payload["asset"]["address"]].cancel();
+				else:
+					self.log("Starting timer for " + payload["asset"]["name"] + " for " + str( self.getAddresses("all")[payload["asset"]["address"]]["timeout"]) + " seconds.");
+					
+				timerPayload = copy.deepcopy(payload);
+				timerPayload["asset"]["rssi"] = 0;
+				timerPayload["reader"] = "base";
+
+				timer = Timer(self.getAddresses("all")[payload["asset"]["address"]]["timeout"], self.processPayload, (timerPayload,));
+
+				self._addressToTimer[payload["asset"]["address"]] = timer;
+				self._addressToTimer[payload["asset"]["address"]].start();
+		
 		if(self._settings.baseServer_ForwardData is not None):
 			self.log("Forwarding payload off to: "+self._settings.baseServer_ForwardData)
 			try:
@@ -63,7 +87,7 @@ class Server():
 				resp = requests.post(self._settings.baseServer_ForwardData, data=json.dumps(forwardPayload), headers=headers,timeout=int(self._settings.baseServer_ForwardTimeout))
 				self.log("Resp: "+str(resp.status_code))
 			except Exception, error:
-				self.log("Error with forward request: "+str(error))		
+				self.log("Error with forward request: "+str(error))	
 	
 	def getAddresses(self,type=None):
 		fetchNew=False
