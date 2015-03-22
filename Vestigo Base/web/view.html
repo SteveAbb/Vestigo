@@ -25,6 +25,10 @@
                     for (var i = 0; i < assets.length; i++) {
 						
 						var assetLocation = "";
+						
+						if(assetToLocation[assets[i]["name"]] != undefined) {
+							assetLocation = assetToLocation[assets[i]["name"]];
+						}
                         
                         
 						if("location" in assets[i]) {
