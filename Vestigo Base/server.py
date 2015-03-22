@@ -34,9 +34,10 @@ class Server():
 			if(payload["address"] in self.assetToPayload and "location" in self.assetToPayload[payload["address"]]):
 				lastLocation = self.assetToPayload[payload["address"]]["location"]
 		
-		if(payload["reader"] == "base"):
+		if("outofrange" in payload and payload["outofrange"]):
 			self.log("Timeout timer elapsed. Moving " + payload["name"] + " into location: out of range.");
 			payload["location"]="out of range";
+			payload.pop("outofrange",None);
 		else:
 			ruleMatches=False	
 			for location in self.getLocations():
@@ -66,7 +67,8 @@ class Server():
 					
 				timerPayload = copy.deepcopy(payload);
 				timerPayload["rssi"] = 0
-				timerPayload["reader"] = "base"
+				timerPayload["reader"] = ""
+				timerPayload["outofrange"] = True;
 
 				timer = Timer(self.getAddresses("all")[payload["address"]]["timeout"], self.processPayload, (timerPayload,));
 
